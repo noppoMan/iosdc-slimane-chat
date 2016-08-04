@@ -1,0 +1,66 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Slimane Chat For IOSDC</title>
+  <link rel="stylesheet" href="/stylesheets/bootstrap.min.css" media="all">
+  <link rel="stylesheet" href="/stylesheets/bootstrap-social.min.css" media="all">
+  <link rel="stylesheet" href="/stylesheets/font-awesome.css" media="all">
+
+  <script>
+    var roomName = "{{roomName}}";
+    var currentUser = {{{currentUser}}};
+  </script>
+</head>
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-3">
+            <div class="btn-panel btn-panel-conversation">
+                <a href="" class="btn  col-lg-6 send-message-btn " role="button"><i class="fa fa-search"></i> Search</a>
+                <a href="" class="btn  col-lg-6  send-message-btn pull-right" role="button"><i class="fa fa-plus"></i> New Message</a>
+            </div>
+        </div>
+
+        <div class="col-lg-offset-1 col-lg-7">
+            <div class="btn-panel btn-panel-msg">
+
+                <a href="" class="btn  col-lg-3  send-message-btn pull-right" role="button"><i class="fa fa-gears"></i> Settings</a>
+            </div>
+        </div>
+        </div>
+        <div class="row">
+
+        <div class="message-wrap col-lg-12">
+            <div class="msg-wrap"></div>
+
+            <div class="send-wrap">
+              <textarea id="message-input" class="form-control send-message" rows="3" placeholder="Write a reply..."></textarea>
+            </div>
+            <div class="btn-panel">
+                <a href="" class=" col-lg-3 btn   send-message-btn " role="button"><i class="fa fa-cloud-upload"></i> Add Files</a>
+                <a href="" class=" col-lg-4 text-right btn   send-message-btn pull-right" role="button"><i class="fa fa-plus"></i> Send Message</a>
+            </div>
+        </div>
+      </div>
+    </div>
+
+    <script id="chat-cell" type="text/template">
+      <div class="media msg">
+          <a class="pull-left" href="#">
+              <img class="media-object" data-src="holder.js/64x64" alt="64x64" style="width: 32px; height: 32px;" src="<%= message.get('user').avatar_url %>">
+          </a>
+          <div class="media-body">
+              <small class="pull-right time"><i class="fa fa-clock-o"></i> </small>
+              <h5 class="media-heading"><%= message.get('user').id %></h5>
+
+              <small class="col-lg-10"><%= message.get("message") %></small>
+          </div>
+      </div>
+    </script>
+
+    <script type="text/javascript" src="/javascripts/lodash.min.js"></script>
+    <script type="text/javascript" src="/javascripts/jquery-3.1.0.min.js"></script>
+    <script type="text/javascript" src="/javascripts/backbone.min.js"></script>
+    <script type="text/javascript" src="/javascripts/chat.js"></script>
+  </body>
+</html>
