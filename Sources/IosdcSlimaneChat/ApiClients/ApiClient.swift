@@ -13,11 +13,11 @@ import JSON
 enum Parameter {
     case json(JSON)
     case formData([String: String])
-    case queryString([String: [String?]])
+    case queryString([String: String])
     case raw(String)
 }
 
-enum ApiClientError: ErrorProtocol {
+enum ApiClientError: Error {
     case hostRequired
 }
 
@@ -61,22 +61,22 @@ extension ApiClient {
         return Promise { resolve, reject in
             let body: Data
             var uri = URI(path: self.path)
-
-            switch self.parameters {
-            case .json(let json):
-                body = JSONSerializer().serializeToString(json: json).data
-            case .formData(let params):
-                body = params.map({ k, v in "\(k)=\(v)" }).joined(separator: "&").data
-            case .queryString(let query):
-                uri.query = query
-                body = []
-            case .raw(let string):
-                body = string.data
-            }
-
+            
             do {
+                switch self.parameters {
+                case .json(let json):
+                    body = JSONSerializer().serialize(json: json)
+                case .formData(let params):
+                    body = params.map({ k, v in "\(k)=\(v)" }).joined(separator: "&").data
+                case .queryString(let query):
+                    uri.query = query.map({ k, v in "\(k)=\(v)" }).joined(separator: "&")
+                    body = []
+                case .raw(let string):
+                    body = string.data
+                }
+
                 let client = try HTTPSClient(host: self.host)
-                client.write(method: self.method, uri: uri, headers: self.headers, body: body).then { response in
+                _ = client.write(method: self.method, uri: uri, headers: self.headers, body: body).then { response in
                     do {
                         resolve(try self.buildResponse(response: response))
                     } catch {

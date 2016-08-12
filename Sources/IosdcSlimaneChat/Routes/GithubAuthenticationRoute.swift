@@ -13,14 +13,14 @@ import MustacheViewEngine
 
 struct GithubAuthenticationRoute {
 
-    static func doLogin(to request: Request, responder: ((Void) throws -> Response) -> Void){
+    static func doLogin(to request: Request, responder: @escaping ((Void) throws -> Response) -> Void){
         responder {
             Response(redirect: "https://github.com/login/oauth/authorize?scope=user:email,public_repo&client_id=\(GITHUB_CLIENT_ID)")
         }
     }
 
-    static func callback(to request: Request, responder: ((Void) throws -> Response) -> Void){
-        guard let _code = request.query["code"]?.first, code = _code else {
+    static func callback(to request: Request, responder: @escaping ((Void) throws -> Response) -> Void){
+        guard let code = request.uri.singleValuedQuery["code"] else {
             return responder { throw GithubAPIError.codeRequired }
         }
 
@@ -49,7 +49,8 @@ struct GithubAuthenticationRoute {
                     }
                 }
             }
-            .failure { error in
+            .`catch` { error in
+                print("\(error): \(error.localizedDescription)")
                 responder {
                     Response(status: .badRequest, body: "\(error)")
                 }

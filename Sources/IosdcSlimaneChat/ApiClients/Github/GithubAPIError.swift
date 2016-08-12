@@ -6,7 +6,7 @@
 //
 //
 
-enum GithubAPIError: ErrorProtocol {
+enum GithubAPIError: Error {
     case codeRequired
     case noToken
 }

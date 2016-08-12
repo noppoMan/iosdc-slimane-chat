@@ -4,7 +4,7 @@ import MustacheViewEngine
 
 struct TopRoute: AsyncResponder {
 
-  func respond(to request: Request, result: ((Void) throws -> Response) -> Void){
+  func respond(to request: Request, result: @escaping ((Void) throws -> Response) -> Void){
       result {
           let render = Render(engine: MustacheViewEngine(templateData: ["isAuthenticated": request.isAuthenticated]), path: "index")
           return Response(custom: render)

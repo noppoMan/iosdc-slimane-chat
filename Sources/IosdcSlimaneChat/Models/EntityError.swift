@@ -6,6 +6,6 @@
 //
 //
 
-enum EntityError: ErrorProtocol {
+enum EntityError: Error {
     case unsatisfiedParameters
 }

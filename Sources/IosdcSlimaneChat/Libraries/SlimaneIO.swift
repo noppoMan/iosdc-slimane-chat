@@ -44,7 +44,7 @@ class SlimaneIO {
 
     private static var redisSubCon: SwiftRedis.Connection?
 
-    enum BroadCastSocketError: ErrorProtocol {
+    enum BroadCastSocketError: Error {
         case configureShouldBeCalled
     }
 
@@ -59,7 +59,7 @@ class SlimaneIO {
     private var handlers: [String: (JSON) -> Void] = [:]
 
     init(channel: String, socket: WebSocket) throws {
-        guard let subCon = SlimaneIO.redisSubCon, _ = SlimaneIO.redisPubCon else {
+        guard let subCon = SlimaneIO.redisSubCon, let _ = SlimaneIO.redisPubCon else {
             throw BroadCastSocketError.configureShouldBeCalled
         }
 
@@ -76,8 +76,8 @@ class SlimaneIO {
 
             // subscribe redis
             Redis.subscribe(subCon, channel: channel) { [unowned self] result in
-                if case .Success(let rep) = result {
-                    guard let rep = rep as? [String], sockets = SlimaneIO.sockets[channel] else {
+                if case .success(let rep) = result {
+                    guard let rep = rep as? [String], let sockets = SlimaneIO.sockets[channel] else {
                         return
                     }
 
@@ -89,22 +89,21 @@ class SlimaneIO {
                                 continue
                             }
 
-                            if let fromSocketId = json["socketid"]?.stringValue where toSocketId == fromSocketId {
+                            if let fromSocketId = json["socketid"]?.stringValue, toSocketId == fromSocketId {
                                 continue
                             }
 
                             socket.send(json: json)
                         }
                     } catch {
-                        // noop
                         print(error)
                     }
                 }
             }
         }
 
-        let json: JSON = []
-        self.emit(to: "connect", json: json)
+        let rep: JSON = []
+        self.emit(to: "connect", json: rep)
 
         socket.onClose { [unowned self] _ in
           if let sockets = SlimaneIO.sockets[channel], let index = sockets.index(of: self.socket) {
@@ -120,13 +119,13 @@ class SlimaneIO {
         SlimaneIO.redisSubCon = redisSubConnection
     }
 
-    func onText(for name: String, handler: (JSON) -> Void){
+    func onText(for name: String, handler: @escaping (JSON) -> Void){
         self.handlers[name] = handler
 
         socket.onText { [unowned self] text in
             do {
               let json = try JSONParser().parse(data: text.data)
-              if let handler = self.handlers[name], data = json["data"] {
+              if let handler = self.handlers[name], let data = json["data"] {
                   handler(data)
               }
             } catch {
@@ -135,18 +134,18 @@ class SlimaneIO {
         }
     }
 
-    func onClose(_ handler: (Void) -> Void) {
+    func onClose(_ handler: @escaping (Void) -> Void) {
       self.onCloseHandler = handler
     }
 
-    func emit(to event: String, json: JSON){
+    func emit(to event: String, json: JSON) {
        let json: JSON = ["event": "\(event)", "data": json]
        socket.send(json: json)
     }
 
-    func broadcast(to event: String, json: JSON){
+    func broadcast(to event: String, json: JSON) throws {
         let json: JSON = ["event": "\(event)", "data": json, "socketid": "\(socket.id!)"]
-        let jsonString = JSONSerializer().serializeToString(json: json)
+        let jsonString = try JSONSerializer().serializeToString(json: json)
         Redis.publish(SlimaneIO.redisPubCon!, channel: channel, data: jsonString) { _ in }
     }
 }
