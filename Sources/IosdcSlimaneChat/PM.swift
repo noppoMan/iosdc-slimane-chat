@@ -1,13 +1,22 @@
+#if os(Linux)
+    import Glibc
+#else
+    import Darwin.C
+#endif
+
+
 import Suv
 
-struct PM {
+private var workers = [Worker]()
 
-    private var workers = [Worker]()
+struct PM {
+    
+    init(){}
 
     let cpus = OS.cpus()
 
-    func observeWorker(_ worker: inout Worker){
-        worker.on { event in
+    func observeWorker(_ worker: Worker){
+        worker.onIPC { event in
             switch event {
             case .online:
                 logger.info("Worker [\(worker.id)] is online")
@@ -17,8 +26,7 @@ struct PM {
                 logger.info("Worker [\(worker.id)] was exited with \(status)")
                 if status > 0 {
                     do {
-                        worker = try Cluster.fork(silent: false)
-                        self.observeWorker(&worker)
+                        try self.createWorker()
                     } catch {
                         logger.fatal("Failed to spawn worker: \(error)")
                     }
@@ -29,31 +37,31 @@ struct PM {
         }
     }
 
-    mutating func createWorkers() throws {
+    func createWorkers() throws {
       for _ in 0..<cpus.count {
           try self.createWorker()
       }
     }
 
-    mutating func createWorker() throws {
-        var worker = try Cluster.fork(silent: false)
-        self.observeWorker(&worker)
-        self.workers.append(worker)
+    func createWorker() throws {
+        let worker = try Cluster.fork(silent: false)
+        self.observeWorker(worker)
+        workers.append(worker)
     }
 
-    mutating func gracefulRestart() throws {
-        let oldWorkers = self.workers
+    func gracefulRestart() throws {
+        let oldWorkers = workers
 
         for _ in 0..<cpus.count {
             try self.createWorker()
         }
 
-        setTimeout(5000) {
+        Timer.timeout(timeout: 5000) {
             do {
                 for worker in oldWorkers {
-                    try worker.kill(SIGTERM)
-                    if let index = self.workers.index(of: worker) {
-                        self.workers.remove(at: index)
+                    try worker.kill(PosixSignal.term.value)
+                    if let index = workers.index(of: worker) {
+                        workers.remove(at: index)
                     }
                 }
                 logger.info("Old workers are killed")

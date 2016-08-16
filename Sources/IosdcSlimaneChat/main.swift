@@ -6,13 +6,13 @@
 
 import Slimane
 
-let logger = Logger(name: "Slimane", appender: SlimaneStdoutAppender(), levels: .info)
+let logger = Logger(name: "Slimane", appenders: [SlimaneStdoutAppender(levels: .info)])
 
 var pm = PM()
 
 do {
-  if Process.arguments.count > 1 {
-      let mode = Process.arguments[1]
+  if CommandLine.arguments.count > 1 {
+      let mode = CommandLine.arguments[1]
 
       if mode != "--cluster" {
           fatalError("Invalid mode")

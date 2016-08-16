@@ -42,7 +42,7 @@ struct GithubAccessTokenRequest: ApiClient {
         var response = response
         let json = try JSONParser().parse(data: response.body.becomeBuffer())
 
-        guard let token = json["access_token"], scope = json["scope"], type = json["token_type"] else {
+        guard let token = json["access_token"], let scope = json["scope"], let type = json["token_type"] else {
             throw GithubAPIError.noToken
         }
 

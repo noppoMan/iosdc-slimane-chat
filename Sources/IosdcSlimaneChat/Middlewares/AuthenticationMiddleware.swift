@@ -16,7 +16,7 @@ extension Request {
         }
     }
 
-    mutating func login(_ user: User, callback: (Void) -> Void){
+    mutating func login(_ user: User, callback: @escaping (Void) -> Void){
         session?["currentUser"] = user.serialize()
         let timer = TimerWrap(tick: 1000)
         timer.start {
@@ -32,12 +32,12 @@ extension Request {
 
 struct AuthenticationMiddleware: AsyncMiddleware {
 
-    static func parse (to request: Request, chainingTo next: AsyncResponder, result: ((Void) throws -> Response) -> Void){
+    static func parse (to request: Request, chainingTo next: AsyncResponder, result: @escaping ((Void) throws -> Response) -> Void){
         var request = request
 
         if let user = request.session?["currentUser"] {
             do {
-                request.storage["currentUser"] = try User(json: JSONParser().parse(data: user.data))
+                request.currentUser = try User(json: JSONParser().parse(data: user.data))
             } catch {
                 result {
                     throw error
@@ -48,7 +48,7 @@ struct AuthenticationMiddleware: AsyncMiddleware {
         next.respond(to: request, result: result)
     }
 
-    func respond(to request: Request, chainingTo next: AsyncResponder, result: ((Void) throws -> Response) -> Void) {
+    func respond(to request: Request, chainingTo next: AsyncResponder, result: @escaping ((Void) throws -> Response) -> Void) {
         if !request.isAuthenticated {
             if request.json == nil {
                 result {

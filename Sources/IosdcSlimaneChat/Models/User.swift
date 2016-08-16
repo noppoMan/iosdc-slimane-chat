@@ -11,7 +11,6 @@ import JSON
 struct User: Storeable {
     var id: String
     var name: String
-    var email: String
     var avatarUrl: String
 
     var key: String {
@@ -23,20 +22,30 @@ struct User: Storeable {
         let json: JSON = [
             "name": "\(name)",
             "login": "\(id)",
-            "email": "\(email)",
             "avatar_url": "\(avatarUrl)"
         ]
         return JSONSerializer().serializeToString(json: json)
     }
 
     init(json: JSON) throws {
-        guard let name = json["name"], login = json["login"], email = json["email"], avatarUrl = json["avatar_url"] else {
+        guard let login = json["login"], let avatarUrl = json["avatar_url"] else {
             throw EntityError.unsatisfiedParameters
         }
+        
+        let id = try login.asString()
 
-        self.id = try login.asString()
-        self.name = try name.asString()
-        self.email = try email.asString()
+        self.id = id
+        
+        self.name = "foooooooo"
+        
+        do {
+            if let name = json["name"] {
+                self.name = try name.asString()
+            }
+        } catch {
+            self.name = id
+        }
+        
         self.avatarUrl = try avatarUrl.asString()
     }
 }

@@ -2,41 +2,36 @@ import Time
 
 public struct SlimaneStdoutAppender: Appender {
     public let name: String
-    public var closed: Bool
-    public var level: Log.Level
-
-    public init(name: String = "PMSStdoutAppender", closed: Bool = false, level: Log.Level = .all) {
+    public var levels: Logger.Level
+    var lastMessage: String = ""
+    
+    init(name: String = "Standard Output Appender", levels: Logger.Level = .all) {
         self.name = name
-        self.closed = closed
-        self.level = level
+        self.levels = levels
     }
-
-    public func append(_ event: LoggingEvent) {
+    
+    public func append(event: Logger.Event) {
         var logMessage = ""
-
-        var level = "ALL"
-        if event.level.contains(Log.Level.info) {
-            level = "INFO"
+        
+//        defer {
+//            lastMessage = logMessage
+//        }
+        
+        guard levels.contains(event.level) else {
+            return
         }
-        else if event.level.contains(Log.Level.debug) {
-            level = "DEBUG"
-        }
-        else if event.level.contains(Log.Level.error) {
-            level = "ERROR"
-        }
-        else if event.level.contains(Log.Level.fatal) {
-            level = "FATAL"
-        }
-
-        logMessage += "[\(name):\(level)] [\(Time(unixtime: event.timestamp))] [\(Process.pid)]"
-
+        
+        logMessage += "[" + event.timestamp + "]"
+        logMessage += "[" + String(describing: event.locationInfo) + "]"
+        
         if let message = event.message {
-            logMessage += ": \(message)"
+            logMessage += ":" + String(describing: message)
         }
+        
         if let error = event.error {
-            logMessage += ": \(error)"
+            logMessage += ":" + String(describing: error)
         }
-
+        
         print(logMessage)
     }
 }

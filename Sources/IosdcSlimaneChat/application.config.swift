@@ -12,15 +12,15 @@ enum Environment: String {
 }
 
 var PORT: Int {
-    guard let portString = Process.env["PORT"], port = Int(portString) else {
+    guard let portString = CommandLine.env["PORT"], let port = Int(portString) else {
         return 3000
     }
     return port
 }
 
-let HOST = Process.env["HOST"] ?? "0.0.0.0"
+let HOST = CommandLine.env["HOST"] ?? "0.0.0.0"
 
-let SLIMANE_ENV = Environment(rawValue: Process.env["SLIMANE_ENV"] ?? "development") ?? .development
+let SLIMANE_ENV = Environment(rawValue: CommandLine.env["SLIMANE_ENV"] ?? "development") ?? .development
 
 let GITHUB_CLIENT_ID = "d0a56933d5439775e999"
 

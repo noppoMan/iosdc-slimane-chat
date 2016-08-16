@@ -6,29 +6,32 @@ enum MessageType: String {
 }
 
 struct ChatSocketMiddleware: AsyncMiddleware {
+    func respond(to request: Request, chainingTo next: AsyncResponder, result: @escaping ((Void) throws -> Response) -> Void) {
+        let wsServer = WebSocketServer { socket, request in
+            guard let roomName = request.uri.singleValuedQuery["room_name"] else {
+                return
+            }
+            
+            do {
+                let socket = try SlimaneIO(channel: roomName, socket: socket)
 
-  func respond(to request: Request, chainingTo next: AsyncResponder, result: ((Void) throws -> Response) -> Void) {
-    let wsServer = WebSocketServer { socket, request in
+                socket.onText(for: MessageType.message.rawValue) { data in
+                    do {
+                        try socket.broadcast(to: MessageType.message.rawValue, json: data)
+                    } catch {
+                        logger.error("\(error)")
+                    }
+                }
 
-      guard let _roomName = request.query["room_name"]?.first, let roomName = _roomName else {
-          return
-      }
+                socket.onClose {
+                    print("Closed")
+                }
 
-      do {
-        let socket = try SlimaneIO(channel: roomName, socket: socket)
-
-        socket.onText(for: MessageType.message.rawValue) { data in
-          socket.broadcast(to: MessageType.message.rawValue, json: data)
+            } catch {
+                logger.error("\(error)")
+            }
         }
-
-        socket.onClose {
-            print("Closed")
-        }
-
-      } catch {
-          print(error)
-      }
+        
+        wsServer.respond(to: request, chainingTo: next, result: result)
     }
-    wsServer.respond(to: request, chainingTo: next, result: result)
-  }
 }
