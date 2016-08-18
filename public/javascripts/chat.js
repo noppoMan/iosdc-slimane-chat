@@ -27,7 +27,7 @@ $(function(){
     currentMessage.set('message', ev.target.value);
   });
 
-  $(".send-message-btn").click(function(ev){
+  $("#form").submit(function(ev){
     ev.preventDefault();
 
     if(_.isEmpty(currentMessage.get('message'))) {
@@ -43,7 +43,7 @@ $(function(){
 
   var compile = _.template($("#chat-cell").html());
   messages.on('add', function(message){
-    $(".msg-wrap").append(compile({message: message}));
+    $("#msgs").append(compile({message: message}));
   });
 
 
