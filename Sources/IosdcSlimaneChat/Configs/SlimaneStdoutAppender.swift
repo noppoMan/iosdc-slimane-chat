@@ -3,7 +3,6 @@ import Time
 public struct SlimaneStdoutAppender: Appender {
     public let name: String
     public var levels: Logger.Level
-    var lastMessage: String = ""
     
     init(name: String = "Standard Output Appender", levels: Logger.Level = .all) {
         self.name = name
@@ -12,14 +11,6 @@ public struct SlimaneStdoutAppender: Appender {
     
     public func append(event: Logger.Event) {
         var logMessage = ""
-        
-//        defer {
-//            lastMessage = logMessage
-//        }
-        
-        guard levels.contains(event.level) else {
-            return
-        }
         
         logMessage += "[" + event.timestamp + "]"
         logMessage += "[" + String(describing: event.locationInfo) + "]"

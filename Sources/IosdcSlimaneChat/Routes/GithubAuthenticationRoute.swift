@@ -50,7 +50,7 @@ struct GithubAuthenticationRoute {
                 }
             }
             .`catch` { error in
-                print("\(error): \(error.localizedDescription)")
+                logger.fatal(error)
                 responder {
                     Response(status: .badRequest, body: "\(error)")
                 }

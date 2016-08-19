@@ -16,11 +16,7 @@ struct ChatSocketMiddleware: AsyncMiddleware {
                 let socket = try SlimaneIO(channel: roomName, socket: socket)
 
                 socket.onText(for: MessageType.message.rawValue) { data in
-                    do {
-                        try socket.broadcast(to: MessageType.message.rawValue, json: data)
-                    } catch {
-                        logger.error("\(error)")
-                    }
+                    socket.broadcast(to: MessageType.message.rawValue, json: data)
                 }
 
                 socket.onClose {

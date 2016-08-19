@@ -4,11 +4,7 @@ import JSON
 import Foundation
 
 private func uuidGenerate() -> String {
-    #if os(Linux)
-        return NSUUID().UUIDString
-    #else
-        return NSUUID().uuidString
-    #endif
+    return NSUUID().uuidString
 }
 
 extension WebSocket: Equatable {
@@ -75,7 +71,7 @@ class SlimaneIO {
             SlimaneIO.sockets[channel] = [socket]
 
             // subscribe redis
-            Redis.subscribe(subCon, channel: channel) { [unowned self] result in
+            Redis.subscribe(subCon, channel: channel) { result in
                 if case .success(let rep) = result {
                     guard let rep = rep as? [String], let sockets = SlimaneIO.sockets[channel] else {
                         return
@@ -143,9 +139,9 @@ class SlimaneIO {
        socket.send(json: json)
     }
 
-    func broadcast(to event: String, json: JSON) throws {
+    func broadcast(to event: String, json: JSON) {
         let json: JSON = ["event": "\(event)", "data": json, "socketid": "\(socket.id!)"]
-        let jsonString = try JSONSerializer().serializeToString(json: json)
+        let jsonString = JSONSerializer().serializeToString(json: json)
         Redis.publish(SlimaneIO.redisPubCon!, channel: channel, data: jsonString) { _ in }
     }
 }
